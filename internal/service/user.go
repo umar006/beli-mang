@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	CreateAdmin(ctx context.Context, body domain.AdminRequest) *fiber.Error
+	CreateAdmin(ctx context.Context, body domain.AdminRequest) (string, *fiber.Error)
 }
 
 type userService struct {
@@ -26,19 +26,24 @@ func NewUser(db *pgx.Conn, userRepo repository.UserRepo) UserService {
 	}
 }
 
-func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest) *fiber.Error {
+func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest) (string, *fiber.Error) {
 	admin := body.NewUserFromDTO()
 
 	hashedPassword, err := helper.HashPassword(admin.Password)
 	if err != nil {
-		return domain.NewErrInternalServerError(err.Error())
+		return "", domain.NewErrInternalServerError(err.Error())
 	}
 
 	admin.Password = string(hashedPassword)
 	err = us.userRepo.CreateAdmin(ctx, us.db, admin)
 	if err != nil {
-		return domain.NewErrInternalServerError(err.Error())
+		return "", domain.NewErrInternalServerError(err.Error())
 	}
 
-	return nil
+	token, err := helper.GenerateJWTToken(admin)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	return token, nil
 }

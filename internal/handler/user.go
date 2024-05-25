@@ -25,10 +25,10 @@ func (uh *userHandler) CreateAdmin(ctx *fiber.Ctx) error {
 	var body domain.AdminRequest
 	ctx.BodyParser(&body)
 
-	err := uh.userService.CreateAdmin(ctx.Context(), body)
+	token, err := uh.userService.CreateAdmin(ctx.Context(), body)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
 
-	return ctx.Status(201).JSON(map[string]string{"message": "success register admin"})
+	return ctx.Status(201).JSON(map[string]string{"token": token})
 }
