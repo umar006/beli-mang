@@ -5,8 +5,11 @@ import (
 	"beli-mang/internal/repository"
 	"beli-mang/internal/service"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
+
+var validate = validator.New()
 
 func (s *FiberServer) RegisterFiberRoutes() {
 	db := s.db.GetDB()
