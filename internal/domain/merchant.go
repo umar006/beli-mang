@@ -36,6 +36,7 @@ func (mc MerchantCategoryType) String() string {
 type Merchant struct {
 	ID        string               `json:"merchantId" db:"id"`
 	CreatedAt int64                `json:"createdAt" db:"created_at"`
+	Name      string               `json:"name" db:"name"`
 	Category  MerchantCategoryType `json:"merchantCategory" db:"category"`
 	ImageUrl  string               `json:"imageUrl" db:"image_url"`
 	Location  pgtype.Point         `json:"location" db:"location"`
