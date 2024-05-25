@@ -31,13 +31,13 @@ func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest
 
 	hashedPassword, err := helper.HashPassword(admin.Password)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return domain.NewErrInternalServerError(err.Error())
 	}
 
 	admin.Password = string(hashedPassword)
 	err = us.userRepo.CreateAdmin(ctx, us.db, admin)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return domain.NewErrInternalServerError(err.Error())
 	}
 
 	return nil
