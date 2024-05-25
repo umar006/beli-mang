@@ -2,7 +2,6 @@ package helper
 
 import (
 	"beli-mang/internal/domain"
-	"fmt"
 	"os"
 	"strconv"
 
@@ -17,7 +16,6 @@ var (
 )
 
 func HashPassword(password string) ([]byte, error) {
-	fmt.Println("HALO", bcryptSalt)
 	parsedSalt, err := strconv.Atoi(bcryptSalt)
 	if err != nil {
 		return nil, err
