@@ -5,3 +5,7 @@ import "github.com/gofiber/fiber/v2"
 func NewErrInternalServerError(msg string) *fiber.Error {
 	return fiber.NewError(fiber.StatusInternalServerError, msg)
 }
+
+func NewErrConflict(msg string) *fiber.Error {
+	return fiber.NewError(fiber.StatusConflict, msg)
+}

@@ -5,9 +5,12 @@ import (
 	"beli-mang/internal/helper"
 	"beli-mang/internal/repository"
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserService interface {
@@ -37,6 +40,13 @@ func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest
 	admin.Password = string(hashedPassword)
 	err = us.userRepo.CreateAdmin(ctx, us.db, admin)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				column := helper.ExtractColumnFromPgErr(pgErr)
+				return "", domain.NewErrConflict(fmt.Sprintf("%s already exists", column))
+			}
+		}
 		return "", domain.NewErrInternalServerError(err.Error())
 	}
 
