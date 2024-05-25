@@ -14,6 +14,7 @@ import (
 
 type Service interface {
 	Health() map[string]string
+	GetDB() *pgx.Conn
 }
 
 type service struct {
@@ -47,6 +48,10 @@ func New() Service {
 		db: conn,
 	}
 	return dbInstance
+}
+
+func (s *service) GetDB() *pgx.Conn {
+	return s.db
 }
 
 func (s *service) Health() map[string]string {
