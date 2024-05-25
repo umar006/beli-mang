@@ -9,3 +9,7 @@ func NewErrInternalServerError(msg string) *fiber.Error {
 func NewErrConflict(msg string) *fiber.Error {
 	return fiber.NewError(fiber.StatusConflict, msg)
 }
+
+func NewErrBadRequest(msg string) *fiber.Error {
+	return fiber.NewError(fiber.StatusBadRequest, msg)
+}

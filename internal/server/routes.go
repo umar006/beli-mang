@@ -22,7 +22,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	userService := service.NewUser(db, userRepo)
 
-	userHandler := handler.NewUser(userService)
+	userHandler := handler.NewUser(validate, userService)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)
