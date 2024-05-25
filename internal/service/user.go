@@ -2,17 +2,13 @@ package service
 
 import (
 	"beli-mang/internal/domain"
+	"beli-mang/internal/helper"
 	"beli-mang/internal/repository"
 	"context"
-	"os"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
-	"golang.org/x/crypto/bcrypt"
 )
-
-var bcryptSalt = os.Getenv("BCRYPT_SALT")
 
 type UserService interface {
 	CreateAdmin(ctx context.Context, body domain.AdminRequest) *fiber.Error
@@ -33,12 +29,7 @@ func NewUser(db *pgx.Conn, userRepo repository.UserRepo) UserService {
 func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest) *fiber.Error {
 	admin := body.NewUserFromDTO()
 
-	parsedSalt, err := strconv.Atoi(bcryptSalt)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(admin.Password), parsedSalt)
+	hashedPassword, err := helper.HashPassword(admin.Password)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
