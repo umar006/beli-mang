@@ -1,5 +1,11 @@
 package domain
 
+import (
+	"time"
+
+	gonanoid "github.com/matoous/go-nanoid/v2"
+)
+
 type RoleType int8
 
 const (
@@ -24,4 +30,24 @@ type User struct {
 	Email     string   `json:"email" db:"email"`
 	Password  string   `json:"password" db:"password"`
 	Role      RoleType `json:"role" db:"role"`
+}
+
+type AdminRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (ar *AdminRequest) NewUserFromDTO() User {
+	id, _ := gonanoid.New()
+	createdAt := time.Now().UnixNano()
+
+	return User{
+		ID:        id,
+		CreatedAt: createdAt,
+		Username:  ar.Username,
+		Email:     ar.Email,
+		Password:  ar.Password,
+		Role:      Admin,
+	}
 }
