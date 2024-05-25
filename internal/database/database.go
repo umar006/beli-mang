@@ -42,7 +42,6 @@ func New() Service {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close(context.Background())
 
 	dbInstance = &service{
 		db: conn,
