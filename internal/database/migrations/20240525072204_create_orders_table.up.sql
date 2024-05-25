@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS orders (
 
     CONSTRAINT merchant_id_orders_merchants_fk 
         FOREIGN KEY (merchant_id) 
-        REFERENCES merchants (id)
+            REFERENCES merchants (id)
+            ON DELETE CASCADE
 );
