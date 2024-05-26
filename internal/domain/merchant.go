@@ -4,34 +4,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type MerchantCategoryType int8
+type MerchantCategoryType string
 
 const (
-	SmallRestaurant MerchantCategoryType = iota
-	MediumRestaurant
-	LargeRestaurant
-	MerchandiseRestaurant
-	BoothKiosk
-	ConvenienceStore
+	MerchantSmallRestaurant       MerchantCategoryType = "SmallRestaurant"
+	MerchantMediumRestaurant      MerchantCategoryType = "MediumRestaurant"
+	MerchantLargeRestaurant       MerchantCategoryType = "LargeRestaurant"
+	MerchantMerchandiseRestaurant MerchantCategoryType = "MerchandiseRestaurant"
+	MerchantBoothKiosk            MerchantCategoryType = "BoothKiosk"
+	MerchantConvenienceStore      MerchantCategoryType = "ConvenienceStore"
 )
-
-func (mc MerchantCategoryType) String() string {
-	switch mc {
-	case SmallRestaurant:
-		return "SmallRestaurant"
-	case MediumRestaurant:
-		return "MediumRestaurant"
-	case LargeRestaurant:
-		return "LargeRestaurant"
-	case MerchandiseRestaurant:
-		return "MerchandiseRestaurant"
-	case BoothKiosk:
-		return "BoothKiosk"
-	case ConvenienceStore:
-		return "ConvenienceStore"
-	}
-	return "unknown merchant category"
-}
 
 type Merchant struct {
 	ID        string               `json:"merchantId" db:"id"`
