@@ -14,7 +14,7 @@ import (
 )
 
 type UserService interface {
-	CreateAdmin(ctx context.Context, body domain.AdminRequest) (string, *fiber.Error)
+	CreateAdmin(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error)
 	Login(ctx context.Context, body domain.LoginRequest) (string, *fiber.Error)
 }
 
@@ -30,8 +30,9 @@ func NewUser(db *pgx.Conn, userRepo repository.UserRepo) UserService {
 	}
 }
 
-func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest) (string, *fiber.Error) {
+func (us *userService) CreateAdmin(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error) {
 	admin := body.NewUserFromDTO()
+	admin.Role = domain.RoleAdmin
 
 	hashedPassword, err := helper.HashPassword(admin.Password)
 	if err != nil {

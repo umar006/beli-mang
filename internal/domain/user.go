@@ -22,7 +22,7 @@ type User struct {
 	Role      RoleType `json:"role" db:"role"`
 }
 
-type AdminRequest struct {
+type RegisterRequest struct {
 	Username string `json:"username" validate:"required,min=5,max=30"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=5,max=30"`
@@ -33,7 +33,7 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=5,max=30"`
 }
 
-func (ar *AdminRequest) NewUserFromDTO() User {
+func (ar *RegisterRequest) NewUserFromDTO() User {
 	id, _ := gonanoid.New()
 	createdAt := time.Now().UnixNano()
 
@@ -43,6 +43,5 @@ func (ar *AdminRequest) NewUserFromDTO() User {
 		Username:  ar.Username,
 		Email:     ar.Email,
 		Password:  ar.Password,
-		Role:      RoleAdmin,
 	}
 }

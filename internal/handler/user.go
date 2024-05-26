@@ -27,7 +27,7 @@ func NewUser(validator *validator.Validate, userService service.UserService) Use
 }
 
 func (uh *userHandler) CreateAdmin(ctx *fiber.Ctx) error {
-	var body domain.AdminRequest
+	var body domain.RegisterRequest
 	ctx.BodyParser(&body)
 
 	if err := uh.validator.Struct(&body); err != nil {
