@@ -31,6 +31,11 @@ func HashPassword(password string) ([]byte, error) {
 	return hashedPassword, nil
 }
 
+func ComparePassword(hashedPwd, pwd string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(pwd))
+	return err == nil
+}
+
 func GenerateJWTToken(user domain.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":       user.ID,

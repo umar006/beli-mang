@@ -15,6 +15,7 @@ import (
 
 type UserService interface {
 	CreateAdmin(ctx context.Context, body domain.AdminRequest) (string, *fiber.Error)
+	Login(ctx context.Context, body domain.LoginRequest) (string, *fiber.Error)
 }
 
 type userService struct {
@@ -51,6 +52,25 @@ func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest
 	}
 
 	token, err := helper.GenerateJWTToken(admin)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	return token, nil
+}
+
+func (us *userService) Login(ctx context.Context, body domain.LoginRequest) (string, *fiber.Error) {
+	user, err := us.userRepo.GetUserByUsername(ctx, us.db, body.Username)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	ok := helper.ComparePassword(user.Password, body.Password)
+	if !ok {
+		return "", domain.NewErrBadRequest("password is wrong")
+	}
+
+	token, err := helper.GenerateJWTToken(user)
 	if err != nil {
 		return "", domain.NewErrInternalServerError(err.Error())
 	}
