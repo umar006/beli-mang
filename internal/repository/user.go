@@ -9,6 +9,7 @@ import (
 
 type UserRepo interface {
 	CreateAdmin(ctx context.Context, db *pgx.Conn, admin domain.User) error
+	GetUserByUsername(ctx context.Context, db *pgx.Conn, username string) (domain.User, error)
 }
 
 type userRepo struct{}
@@ -26,4 +27,19 @@ func (ur *userRepo) CreateAdmin(ctx context.Context, db *pgx.Conn, admin domain.
 		return err
 	}
 	return nil
+}
+
+func (ur *userRepo) GetUserByUsername(ctx context.Context, db *pgx.Conn, username string) (domain.User, error) {
+	query := `SELECT id, created_at, username, email, password, role
+				FROM users
+				WHERE username = $1`
+	var user domain.User
+	err := db.QueryRow(ctx, query, username).
+		Scan(&user.ID, &user.CreatedAt, &user.Username,
+			&user.Email, &user.Password, &user.Role)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return user, nil
 }
