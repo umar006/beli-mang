@@ -36,7 +36,7 @@ func GenerateJWTToken(user domain.User) (string, error) {
 		"id":       user.ID,
 		"username": user.Username,
 		"email":    user.Email,
-		"role":     user.Role.String(),
+		"role":     user.Role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

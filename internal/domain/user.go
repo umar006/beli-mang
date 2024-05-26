@@ -6,22 +6,12 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-type RoleType int8
+type RoleType string
 
 const (
-	Customer RoleType = iota
-	Admin
+	RoleAdmin    RoleType = "admin"
+	RoleCustomer RoleType = "customer"
 )
-
-func (r RoleType) String() string {
-	switch r {
-	case Customer:
-		return "customer"
-	case Admin:
-		return "admin"
-	}
-	return "unknown role"
-}
 
 type User struct {
 	ID        string   `json:"userId" db:"id"`
@@ -48,6 +38,6 @@ func (ar *AdminRequest) NewUserFromDTO() User {
 		Username:  ar.Username,
 		Email:     ar.Email,
 		Password:  ar.Password,
-		Role:      Admin,
+		Role:      RoleAdmin,
 	}
 }
