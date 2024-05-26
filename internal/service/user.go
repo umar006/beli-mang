@@ -15,6 +15,7 @@ import (
 
 type UserService interface {
 	CreateAdmin(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error)
+	CreateCustomer(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error)
 	Login(ctx context.Context, body domain.LoginRequest) (string, *fiber.Error)
 }
 
@@ -53,6 +54,36 @@ func (us *userService) CreateAdmin(ctx context.Context, body domain.RegisterRequ
 	}
 
 	token, err := helper.GenerateJWTToken(admin)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	return token, nil
+}
+
+func (us *userService) CreateCustomer(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error) {
+	customer := body.NewUserFromDTO()
+	customer.Role = domain.RoleCustomer
+
+	hashedPassword, err := helper.HashPassword(customer.Password)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	customer.Password = string(hashedPassword)
+	err = us.userRepo.Create(ctx, us.db, customer)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				column := helper.ExtractColumnFromPgErr(pgErr)
+				return "", domain.NewErrConflict(fmt.Sprintf("%s already exists", column))
+			}
+		}
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+
+	token, err := helper.GenerateJWTToken(customer)
 	if err != nil {
 		return "", domain.NewErrInternalServerError(err.Error())
 	}
