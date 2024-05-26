@@ -27,6 +27,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)
 	admin.Post("/login", userHandler.Login)
+
+	users := s.App.Group("/users")
+	users.Post("/register", userHandler.CreateCustomer)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
