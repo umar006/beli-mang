@@ -19,10 +19,13 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	s.App.Get("/health", s.healthHandler)
 
 	userRepo := repository.NewUser()
+	merchantRepo := repository.NewMerchantRepo()
 
 	userService := service.NewUser(db, userRepo)
+	merchantService := service.NewMerchantService(db, merchantRepo)
 
 	userHandler := handler.NewUser(validate, userService)
+	merchantHandler := handler.NewMerchantHandler(merchantService)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)
@@ -31,6 +34,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	users := s.App.Group("/users")
 	users.Post("/register", userHandler.CreateCustomer)
 	users.Post("/login", userHandler.Login)
+
+	merchant := admin.Group("/merchants")
+	merchant.Post("/", merchantHandler.CreateMerchant)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
