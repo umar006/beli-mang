@@ -8,7 +8,7 @@ import (
 )
 
 type UserRepo interface {
-	CreateAdmin(ctx context.Context, db *pgx.Conn, admin domain.User) error
+	Create(ctx context.Context, db *pgx.Conn, user domain.User) error
 	GetUserByUsername(ctx context.Context, db *pgx.Conn, username string) (domain.User, error)
 }
 
@@ -18,11 +18,11 @@ func NewUser() UserRepo {
 	return &userRepo{}
 }
 
-func (ur *userRepo) CreateAdmin(ctx context.Context, db *pgx.Conn, admin domain.User) error {
+func (ur *userRepo) Create(ctx context.Context, db *pgx.Conn, user domain.User) error {
 	query := `INSERT INTO users (id, created_at, username, email, password, role)
                 VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := db.Exec(ctx, query, admin.ID, admin.CreatedAt, admin.Username,
-		admin.Email, admin.Password, admin.Role)
+	_, err := db.Exec(ctx, query, user.ID, user.CreatedAt, user.Username,
+		user.Email, user.Password, user.Role)
 	if err != nil {
 		return err
 	}

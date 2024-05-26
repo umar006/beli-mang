@@ -39,7 +39,7 @@ func (us *userService) CreateAdmin(ctx context.Context, body domain.AdminRequest
 	}
 
 	admin.Password = string(hashedPassword)
-	err = us.userRepo.CreateAdmin(ctx, us.db, admin)
+	err = us.userRepo.Create(ctx, us.db, admin)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
