@@ -11,6 +11,7 @@ import (
 
 type UserHandler interface {
 	CreateAdmin(ctx *fiber.Ctx) error
+	CreateCustomer(ctx *fiber.Ctx) error
 	Login(ctx *fiber.Ctx) error
 }
 
@@ -36,6 +37,23 @@ func (uh *userHandler) CreateAdmin(ctx *fiber.Ctx) error {
 	}
 
 	token, err := uh.userService.CreateAdmin(ctx.Context(), body)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(err)
+	}
+
+	return ctx.Status(201).JSON(map[string]string{"token": token})
+}
+
+func (uh *userHandler) CreateCustomer(ctx *fiber.Ctx) error {
+	var body domain.RegisterRequest
+	ctx.BodyParser(&body)
+
+	if err := uh.validator.Struct(&body); err != nil {
+		err := helper.ValidateRequest(err)
+		return ctx.Status(err.Code).JSON(err)
+	}
+
+	token, err := uh.userService.CreateCustomer(ctx.Context(), body)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
