@@ -2,8 +2,10 @@ package handler
 
 import (
 	"beli-mang/internal/domain"
+	"beli-mang/internal/helper"
 	"beli-mang/internal/service"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,11 +14,13 @@ type MerchantHandler interface {
 }
 
 type merchantHandler struct {
+	validator       *validator.Validate
 	merchantService service.MerchantService
 }
 
-func NewMerchantHandler(merchantService service.MerchantService) MerchantHandler {
+func NewMerchantHandler(validator *validator.Validate, merchantService service.MerchantService) MerchantHandler {
 	return &merchantHandler{
+		validator:       validator,
 		merchantService: merchantService,
 	}
 }
@@ -24,6 +28,11 @@ func NewMerchantHandler(merchantService service.MerchantService) MerchantHandler
 func (mh *merchantHandler) CreateMerchant(ctx *fiber.Ctx) error {
 	var body domain.MerchantRequest
 	ctx.BodyParser(&body)
+
+	if err := mh.validator.Struct(&body); err != nil {
+		err := helper.ValidateRequest(err)
+		return ctx.Status(err.Code).JSON(err)
+	}
 
 	merchantID, err := mh.merchantService.CreateMerchant(ctx.Context(), body)
 	if err != nil {

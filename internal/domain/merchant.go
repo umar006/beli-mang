@@ -28,14 +28,14 @@ type Merchant struct {
 }
 
 type MerchantLocation struct {
-	Latitude  float64 `json:"lat"`
-	Longitude float64 `json:"long"`
+	Latitude  float64 `json:"lat" validate:"required,number"`
+	Longitude float64 `json:"long" validate:"required,number"`
 }
 
 type MerchantRequest struct {
-	Name     string               `json:"name"`
-	Category MerchantCategoryType `json:"merchantCategory"`
-	ImageUrl string               `json:"imageUrl"`
+	Name     string               `json:"name" validate:"required,min=2,max=30"`
+	Category MerchantCategoryType `json:"merchantCategory" validate:"required,oneof=SmallRestaurant MediumRestaurant LargeRestaurant MerchandiseRestaurant BoothKiosk ConvenienceStore"`
+	ImageUrl string               `json:"imageUrl" validate:"required,url"`
 	Location MerchantLocation     `json:"location"`
 }
 

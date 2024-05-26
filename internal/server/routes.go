@@ -4,6 +4,7 @@ import (
 	"beli-mang/internal/handler"
 	"beli-mang/internal/repository"
 	"beli-mang/internal/service"
+	"beli-mang/internal/validation"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	s.App.Get("/health", s.healthHandler)
 
+	validate.RegisterValidation("url", validation.URL)
+
 	userRepo := repository.NewUser()
 	merchantRepo := repository.NewMerchantRepo()
 
@@ -25,7 +28,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchantService := service.NewMerchantService(db, merchantRepo)
 
 	userHandler := handler.NewUser(validate, userService)
-	merchantHandler := handler.NewMerchantHandler(merchantService)
+	merchantHandler := handler.NewMerchantHandler(validate, merchantService)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)

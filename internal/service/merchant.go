@@ -4,7 +4,6 @@ import (
 	"beli-mang/internal/domain"
 	"beli-mang/internal/repository"
 	"context"
-	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
@@ -27,9 +26,7 @@ func NewMerchantService(db *pgx.Conn, merchantRepo repository.MerchantRepo) Merc
 }
 
 func (ms *merchantService) CreateMerchant(ctx context.Context, body domain.MerchantRequest) (string, *fiber.Error) {
-	fmt.Printf("body: %+v\n", body)
 	merchant := body.NewMerchantFromDTO()
-	fmt.Printf("merchant: %+v\n", merchant)
 	err := ms.merchantRepo.CreateMerchant(ctx, ms.db, merchant)
 	if err != nil {
 		return "", domain.NewErrInternalServerError(err.Error())

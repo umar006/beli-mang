@@ -20,8 +20,10 @@ func msgForTag(fe validator.FieldError) string {
 		return fmt.Sprintf("minimum %s is %s characters", field, param)
 	case "max":
 		return fmt.Sprintf("maximum %s is %s characters", field, param)
-	case "email":
+	case "email", "url":
 		return fmt.Sprintf("invalid %s format", field)
+	case "oneof":
+		return fmt.Sprintf("%s should be one of %s", field, param)
 	}
 
 	return "unhandled validation"
