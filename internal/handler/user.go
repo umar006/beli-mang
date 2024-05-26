@@ -11,7 +11,7 @@ import (
 
 type UserHandler interface {
 	CreateAdmin(ctx *fiber.Ctx) error
-	LoginAdmin(ctx *fiber.Ctx) error
+	Login(ctx *fiber.Ctx) error
 }
 
 type userHandler struct {
@@ -43,7 +43,7 @@ func (uh *userHandler) CreateAdmin(ctx *fiber.Ctx) error {
 	return ctx.Status(201).JSON(map[string]string{"token": token})
 }
 
-func (uh *userHandler) LoginAdmin(ctx *fiber.Ctx) error {
+func (uh *userHandler) Login(ctx *fiber.Ctx) error {
 	var body domain.LoginRequest
 	ctx.BodyParser(&body)
 
