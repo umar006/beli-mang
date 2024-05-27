@@ -39,6 +39,15 @@ type MerchantRequest struct {
 	Location MerchantLocation     `json:"location"`
 }
 
+type MerchantResponse struct {
+	ID        string               `json:"merchantId"`
+	CreatedAt int64                `json:"createdAt"`
+	Name      string               `json:"name"`
+	Category  MerchantCategoryType `json:"merchantCategory"`
+	ImageUrl  string               `json:"imageUrl"`
+	Location  MerchantLocation     `json:"location"`
+}
+
 func (mr *MerchantRequest) NewMerchantFromDTO() Merchant {
 	id, _ := gonanoid.New()
 	createdAt := time.Now().UnixNano()
