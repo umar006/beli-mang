@@ -13,7 +13,8 @@ import (
 
 type MerchantRepo interface {
 	CreateMerchant(ctx context.Context, db *pgx.Conn, merchant domain.Merchant) error
-	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, error)
+	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
+	GetTotalMerchantList(ctx context.Context, db *pgx.Conn) (int, error)
 }
 
 type merchantRepo struct{}
@@ -36,7 +37,7 @@ func (mr *merchantRepo) CreateMerchant(ctx context.Context, db *pgx.Conn, mercha
 	return nil
 }
 
-func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, error) {
+func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error) {
 	var whereParams []string
 	var sortParams []string
 	var limitOffsetParams []string
@@ -65,19 +66,19 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 		sortParams = append(sortParams, fmt.Sprintf("created_at %s", queryParams.CreatedAt))
 	}
 
-	limit := "5"
-	_, err := strconv.Atoi(queryParams.Limit)
+	limit := 5
+	parsedLimit, err := strconv.Atoi(queryParams.Limit)
 	if queryParams.Limit != "" && err == nil {
-		limit = queryParams.Limit
+		limit = parsedLimit
 	}
 	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("LIMIT $%d", argPos))
 	args = append(args, limit)
 	argPos++
 
-	offset := "0"
-	_, err = strconv.Atoi(queryParams.Offset)
+	offset := 0
+	parsedOffset, err := strconv.Atoi(queryParams.Offset)
 	if queryParams.Limit != "" && err == nil {
-		offset = queryParams.Offset
+		offset = parsedOffset
 	}
 	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("OFFSET $%d", argPos))
 	args = append(args, offset)
@@ -102,7 +103,7 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 
 	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	merchantList := []domain.MerchantResponse{}
@@ -126,6 +127,27 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 		}
 		merchantList = append(merchantList, merchant)
 	}
+	totalMerchantList, err := mr.GetTotalMerchantList(ctx, db)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return merchantList, nil
+	page := domain.Page{
+		Limit:  limit,
+		Offset: offset,
+		Total:  totalMerchantList,
+	}
+
+	return merchantList, &page, nil
+}
+
+func (mr *merchantRepo) GetTotalMerchantList(ctx context.Context, db *pgx.Conn) (int, error) {
+	query := `SELECT count(*) FROM merchants`
+	var total int
+	err := db.QueryRow(ctx, query).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }

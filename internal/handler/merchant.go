@@ -47,10 +47,15 @@ func (mh *merchantHandler) GetMerchantList(ctx *fiber.Ctx) error {
 	var queryParams domain.MerchantQueryParams
 	ctx.QueryParser(&queryParams)
 
-	merchantList, err := mh.merchantService.GetMerchantList(ctx.Context(), queryParams)
+	merchantList, page, err := mh.merchantService.GetMerchantList(ctx.Context(), queryParams)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
 
-	return ctx.Status(200).JSON(map[string]any{"data": merchantList})
+	response := domain.SuccessResponse{
+		Data: merchantList,
+		Meta: *page,
+	}
+
+	return ctx.Status(200).JSON(response)
 }
