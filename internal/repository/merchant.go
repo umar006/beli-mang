@@ -4,6 +4,7 @@ import (
 	"beli-mang/internal/domain"
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -37,6 +38,7 @@ func (mr *merchantRepo) CreateMerchant(ctx context.Context, db *pgx.Conn, mercha
 func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, error) {
 	var whereParams []string
 	var sortParams []string
+	var limitOffsetParams []string
 	var args []any
 	argPos := 1
 
@@ -62,6 +64,24 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 		sortParams = append(sortParams, fmt.Sprintf("created_at %s", queryParams.CreatedAt))
 	}
 
+	limit := "5"
+	_, err := strconv.Atoi(queryParams.Limit)
+	if queryParams.Limit != "" && err == nil {
+		limit = queryParams.Limit
+	}
+	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("LIMIT $%d", argPos))
+	args = append(args, limit)
+	argPos++
+
+	offset := "0"
+	_, err = strconv.Atoi(queryParams.Offset)
+	if queryParams.Limit != "" && err == nil {
+		offset = queryParams.Offset
+	}
+	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("OFFSET $%d", argPos))
+	args = append(args, offset)
+	argPos++
+
 	var whereQuery string
 	if len(whereParams) > 0 {
 		whereQuery = "\nWHERE " + strings.Join(whereParams, " AND ")
@@ -70,11 +90,14 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 	if len(sortParams) > 0 {
 		sortQuery = "\nORDER BY " + strings.Join(sortParams, ", ")
 	}
+	var limitOffsetQuery string
+	limitOffsetQuery = "\n" + strings.Join(limitOffsetParams, " ")
 
 	query := `SELECT id, created_at, name, category, image_url, location
 	FROM merchants`
 	query += whereQuery
 	query += sortQuery
+	query += limitOffsetQuery
 
 	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
