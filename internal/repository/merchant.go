@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -111,9 +112,10 @@ func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, query
 			&merchantFromDB.Category, &merchantFromDB.ImageUrl, &merchantFromDB.Location,
 		)
 
+		parsedCreatedAt := time.Unix(0, merchantFromDB.CreatedAt).Format(time.RFC3339)
 		merchant := domain.MerchantResponse{
 			ID:        merchantFromDB.ID,
-			CreatedAt: merchantFromDB.CreatedAt,
+			CreatedAt: parsedCreatedAt,
 			Name:      merchantFromDB.Name,
 			Category:  merchantFromDB.Category,
 			ImageUrl:  merchantFromDB.ImageUrl,

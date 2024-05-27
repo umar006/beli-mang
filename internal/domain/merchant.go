@@ -40,12 +40,13 @@ type MerchantRequest struct {
 }
 
 type MerchantResponse struct {
-	ID        string               `json:"merchantId"`
-	CreatedAt int64                `json:"createdAt"`
-	Name      string               `json:"name"`
-	Category  MerchantCategoryType `json:"merchantCategory"`
-	ImageUrl  string               `json:"imageUrl"`
-	Location  MerchantLocation     `json:"location"`
+	ID            string               `json:"merchantId"`
+	CreatedAt     string               `json:"createdAt"`
+	Name          string               `json:"name"`
+	Category      MerchantCategoryType `json:"merchantCategory"`
+	ImageUrl      string               `json:"imageUrl"`
+	Location      MerchantLocation     `json:"location"`
+	TotalMerchant int                  `json:"TotalMerchant"`
 }
 
 type MerchantQueryParams struct {
