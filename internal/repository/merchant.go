@@ -3,13 +3,15 @@ package repository
 import (
 	"beli-mang/internal/domain"
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type MerchantRepo interface {
 	CreateMerchant(ctx context.Context, db *pgx.Conn, merchant domain.Merchant) error
-	GetMerchantList(ctx context.Context, db *pgx.Conn) ([]domain.MerchantResponse, error)
+	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, error)
 }
 
 type merchantRepo struct{}
@@ -32,10 +34,49 @@ func (mr *merchantRepo) CreateMerchant(ctx context.Context, db *pgx.Conn, mercha
 	return nil
 }
 
-func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn) ([]domain.MerchantResponse, error) {
+func (mr *merchantRepo) GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, error) {
+	var whereParams []string
+	var sortParams []string
+	var args []any
+	argPos := 1
+
+	if queryParams.ID != "" {
+		whereParams = append(whereParams, fmt.Sprintf("id = $%d", argPos))
+		args = append(args, queryParams.ID)
+		argPos++
+	}
+
+	if queryParams.Name != "" {
+		whereParams = append(whereParams, fmt.Sprintf("name ILIKE $%d", argPos))
+		args = append(args, "%"+queryParams.Name+"%")
+		argPos++
+	}
+
+	if queryParams.Category != "" {
+		whereParams = append(whereParams, fmt.Sprintf("category = $%d", argPos))
+		args = append(args, queryParams.Category)
+		argPos++
+	}
+
+	if queryParams.CreatedAt == "asc" || queryParams.CreatedAt == "desc" {
+		sortParams = append(sortParams, fmt.Sprintf("created_at %s", queryParams.CreatedAt))
+	}
+
+	var whereQuery string
+	if len(whereParams) > 0 {
+		whereQuery = "\nWHERE " + strings.Join(whereParams, " AND ")
+	}
+	var sortQuery string
+	if len(sortParams) > 0 {
+		sortQuery = "\nORDER BY " + strings.Join(sortParams, ", ")
+	}
+
 	query := `SELECT id, created_at, name, category, image_url, location
 	FROM merchants`
-	rows, err := db.Query(ctx, query)
+	query += whereQuery
+	query += sortQuery
+
+	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
