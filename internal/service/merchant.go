@@ -11,6 +11,7 @@ import (
 
 type MerchantService interface {
 	CreateMerchant(ctx context.Context, body domain.MerchantRequest) (string, *fiber.Error)
+	GetMerchantList(ctx context.Context) ([]domain.MerchantResponse, *fiber.Error)
 }
 
 type merchantService struct {
@@ -33,4 +34,13 @@ func (ms *merchantService) CreateMerchant(ctx context.Context, body domain.Merch
 	}
 
 	return merchant.ID, nil
+}
+
+func (ms *merchantService) GetMerchantList(ctx context.Context) ([]domain.MerchantResponse, *fiber.Error) {
+	merchantList, err := ms.merchantRepo.GetMerchantList(ctx, ms.db)
+	if err != nil {
+		return nil, domain.NewErrInternalServerError(err.Error())
+	}
+
+	return merchantList, nil
 }
