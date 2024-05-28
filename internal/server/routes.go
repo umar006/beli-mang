@@ -23,12 +23,15 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	userRepo := repository.NewUser()
 	merchantRepo := repository.NewMerchantRepo()
+	merchantItemRepo := repository.NewMerchantItemRepo()
 
 	userService := service.NewUser(db, userRepo)
 	merchantService := service.NewMerchantService(db, merchantRepo)
+	merchantItemService := service.NewMerchantItemService(db, merchantItemRepo)
 
 	userHandler := handler.NewUser(validate, userService)
 	merchantHandler := handler.NewMerchantHandler(validate, merchantService)
+	merchantItemHandler := handler.NewMerchantItemHandler(merchantItemService)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)
@@ -41,6 +44,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchant := admin.Group("/merchants")
 	merchant.Post("/", merchantHandler.CreateMerchant)
 	merchant.Get("/", merchantHandler.GetMerchantList)
+	merchant.Post("/:merchantId/items", merchantItemHandler.CreateMerchantItem)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
