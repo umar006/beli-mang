@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -111,14 +112,25 @@ func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context,
 
 	merchantItemList := []domain.MerchantItemResponse{}
 	for rows.Next() {
-		merchantItem := domain.MerchantItemResponse{}
+		merchantItemFromDB := domain.MerchantItem{}
 		err := rows.Scan(
-			&merchantItem.ID, &merchantItem.CreatedAt, &merchantItem.Name,
-			&merchantItem.Category, &merchantItem.Price, &merchantItem.ImageUrl,
+			&merchantItemFromDB.ID, &merchantItemFromDB.CreatedAt, &merchantItemFromDB.Name,
+			&merchantItemFromDB.Category, &merchantItemFromDB.Price, &merchantItemFromDB.ImageUrl,
 		)
 		if err != nil {
 			return nil, nil, err
 		}
+
+		parsedCreatedAt := time.Unix(0, merchantItemFromDB.CreatedAt).Format(time.RFC3339)
+		merchantItem := domain.MerchantItemResponse{
+			ID:        merchantItemFromDB.ID,
+			CreatedAt: parsedCreatedAt,
+			Name:      merchantItemFromDB.Name,
+			Category:  merchantItemFromDB.Category,
+			Price:     merchantItemFromDB.Price,
+			ImageUrl:  merchantItemFromDB.ImageUrl,
+		}
+
 		merchantItemList = append(merchantItemList, merchantItem)
 	}
 

@@ -34,7 +34,7 @@ type MerchantItemRequest struct {
 
 type MerchantItemResponse struct {
 	ID        string           `json:"itemId"`
-	CreatedAt int64            `json:"createdAt"`
+	CreatedAt string           `json:"createdAt"`
 	Name      string           `json:"name"`
 	Category  ItemCategoryType `json:"productCategory"`
 	Price     int64            `json:"price"`
