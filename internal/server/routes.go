@@ -27,7 +27,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	userService := service.NewUser(db, userRepo)
 	merchantService := service.NewMerchantService(db, merchantRepo)
-	merchantItemService := service.NewMerchantItemService(db, merchantItemRepo)
+	merchantItemService := service.NewMerchantItemService(db, merchantRepo, merchantItemRepo)
 
 	userHandler := handler.NewUser(validate, userService)
 	merchantHandler := handler.NewMerchantHandler(validate, merchantService)

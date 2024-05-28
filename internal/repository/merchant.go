@@ -15,6 +15,7 @@ type MerchantRepo interface {
 	CreateMerchant(ctx context.Context, db *pgx.Conn, merchant domain.Merchant) error
 	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
 	GetTotalMerchantList(ctx context.Context, db *pgx.Conn) (int, error)
+	CheckMerchantExistsByMerchantID(ctx context.Context, db *pgx.Conn, merchantID string) (bool, error)
 }
 
 type merchantRepo struct{}
@@ -150,4 +151,15 @@ func (mr *merchantRepo) GetTotalMerchantList(ctx context.Context, db *pgx.Conn) 
 	}
 
 	return total, nil
+}
+
+func (mr *merchantRepo) CheckMerchantExistsByMerchantID(ctx context.Context, db *pgx.Conn, merchantID string) (bool, error) {
+	query := `SELECT EXISTS (SELECT 1 FROM merchants WHERE id = $1)`
+	var exists bool
+	err := db.QueryRow(ctx, query, merchantID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }

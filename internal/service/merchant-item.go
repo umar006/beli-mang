@@ -18,12 +18,14 @@ type MerchantItemService interface {
 
 type merchantItemService struct {
 	db               *pgx.Conn
+	merchantRepo     repository.MerchantRepo
 	merchantItemRepo repository.MerchantItemRepo
 }
 
-func NewMerchantItemService(db *pgx.Conn, merchantItemRepo repository.MerchantItemRepo) MerchantItemService {
+func NewMerchantItemService(db *pgx.Conn, merchantRepo repository.MerchantRepo, merchantItemRepo repository.MerchantItemRepo) MerchantItemService {
 	return &merchantItemService{
 		db:               db,
+		merchantRepo:     merchantRepo,
 		merchantItemRepo: merchantItemRepo,
 	}
 }
@@ -46,6 +48,14 @@ func (mi *merchantItemService) CreateMerchantItem(ctx context.Context, merchantI
 }
 
 func (mi *merchantItemService) GetMerchantItemListByMerchantID(ctx context.Context, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, *fiber.Error) {
+	exists, err := mi.merchantRepo.CheckMerchantExistsByMerchantID(ctx, mi.db, merchantId)
+	if err != nil {
+		return nil, nil, domain.NewErrInternalServerError(err.Error())
+	}
+	if !exists {
+		return nil, nil, domain.NewErrNotFound("merchant is not found")
+	}
+
 	merchantItemList, page, err := mi.merchantItemRepo.GetMerchantItemListByMerchantID(ctx, mi.db, merchantId, queryParams)
 	if err != nil {
 		return nil, nil, domain.NewErrInternalServerError(err.Error())
