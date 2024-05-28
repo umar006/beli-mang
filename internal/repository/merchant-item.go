@@ -4,13 +4,15 @@ import (
 	"beli-mang/internal/domain"
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type MerchantItemRepo interface {
 	CreateMerchantItem(ctx context.Context, db *pgx.Conn, merchantId string, merchantItem domain.MerchantItem) error
-	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) ([]domain.MerchantItemResponse, error)
+	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, error)
 }
 
 type merchantItemRepo struct{}
@@ -35,12 +37,73 @@ func (mi *merchantItemRepo) CreateMerchantItem(ctx context.Context, db *pgx.Conn
 	return nil
 }
 
-func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) ([]domain.MerchantItemResponse, error) {
-	fmt.Println(merchantId)
+func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, error) {
+	var whereParams []string
+	var sortParams []string
+	var limitOffsetParams []string
+	var args []any
+	args = append(args, merchantId)
+	argPos := 2 // start from 2 because $1 for merchantId
+
+	if queryParams.ID != "" {
+		whereParams = append(whereParams, fmt.Sprintf("id = $%d", argPos))
+		args = append(args, queryParams.ID)
+		argPos++
+	}
+
+	if queryParams.Name != "" {
+		whereParams = append(whereParams, fmt.Sprintf("name ILIKE $%d", argPos))
+		args = append(args, "%"+queryParams.Name+"%")
+		argPos++
+	}
+
+	if queryParams.Category != "" {
+		whereParams = append(whereParams, fmt.Sprintf("category = $%d", argPos))
+		args = append(args, queryParams.Category)
+		argPos++
+	}
+
+	if queryParams.CreatedAt == "asc" || queryParams.CreatedAt == "desc" {
+		sortParams = append(sortParams, fmt.Sprintf("created_at %s", queryParams.CreatedAt))
+	}
+
+	limit := 5
+	parsedLimit, err := strconv.Atoi(queryParams.Limit)
+	if queryParams.Limit != "" && err == nil {
+		limit = parsedLimit
+	}
+	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("LIMIT $%d", argPos))
+	args = append(args, limit)
+	argPos++
+
+	offset := 0
+	parsedOffset, err := strconv.Atoi(queryParams.Offset)
+	if queryParams.Limit != "" && err == nil {
+		offset = parsedOffset
+	}
+	limitOffsetParams = append(limitOffsetParams, fmt.Sprintf("OFFSET $%d", argPos))
+	args = append(args, offset)
+	argPos++
+
+	var whereQuery string
+	if len(whereParams) > 0 {
+		whereQuery = "\nWHERE " + strings.Join(whereParams, " AND ")
+	}
+	var sortQuery string
+	if len(sortParams) > 0 {
+		sortQuery = "\nORDER BY " + strings.Join(sortParams, ", ")
+	}
+	var limitOffsetQuery string
+	limitOffsetQuery = "\n" + strings.Join(limitOffsetParams, " ")
+
 	query := `SELECT id, created_at, name, category, price, image_url
 	 FROM merchant_items
 	 WHERE merchant_id = $1`
-	rows, err := db.Query(ctx, query, merchantId)
+	query += whereQuery
+	query += sortQuery
+	query += limitOffsetQuery
+
+	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

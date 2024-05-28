@@ -48,7 +48,10 @@ func (mi *merchantItemHandler) CreateMerchantItem(ctx *fiber.Ctx) error {
 func (mi *merchantItemHandler) GetMerchantItemList(ctx *fiber.Ctx) error {
 	merchantId := ctx.Params("merchantId", "")
 
-	merchantItemList, err := mi.merchantItemService.GetMerchantItemListByMerchantID(ctx.Context(), merchantId)
+	var queryParams domain.MerchantItemQueryParams
+	ctx.QueryParser(&queryParams)
+
+	merchantItemList, err := mi.merchantItemService.GetMerchantItemListByMerchantID(ctx.Context(), merchantId, queryParams)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
