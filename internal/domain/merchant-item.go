@@ -41,6 +41,15 @@ type MerchantItemResponse struct {
 	ImageUrl  string           `json:"imageUrl"`
 }
 
+type MerchantItemQueryParams struct {
+	ID        string `query:"itemId"`
+	Limit     string `query:"limit"`
+	Offset    string `query:"offset"`
+	Name      string `query:"name"`
+	Category  string `query:"productCategory"`
+	CreatedAt string `query:"createdAt"`
+}
+
 func (mi *MerchantItemRequest) NewMerchantItemFromDTO() MerchantItem {
 	id, _ := gonanoid.New()
 	createdAt := time.Now().UnixNano()
