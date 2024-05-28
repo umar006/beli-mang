@@ -26,10 +26,10 @@ type MerchantItem struct {
 }
 
 type MerchantItemRequest struct {
-	Name     string           `json:"name"`
-	Category ItemCategoryType `json:"productCategory"`
-	Price    int64            `json:"price"`
-	ImageUrl string           `json:"imageUrl"`
+	Name     string           `json:"name" validate:"required,min=2,max=30"`
+	Category ItemCategoryType `json:"productCategory" validate:"required,oneof=Beverage Food Snack Condiments Additions"`
+	Price    int64            `json:"price" validate:"required,min=1"`
+	ImageUrl string           `json:"imageUrl" validate:"required,url"`
 }
 
 func (mi *MerchantItemRequest) NewMerchantItemFromDTO() MerchantItem {

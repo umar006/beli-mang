@@ -31,7 +31,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	userHandler := handler.NewUser(validate, userService)
 	merchantHandler := handler.NewMerchantHandler(validate, merchantService)
-	merchantItemHandler := handler.NewMerchantItemHandler(merchantItemService)
+	merchantItemHandler := handler.NewMerchantItemHandler(validate, merchantItemService)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)
