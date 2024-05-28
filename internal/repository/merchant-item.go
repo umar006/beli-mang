@@ -12,7 +12,8 @@ import (
 
 type MerchantItemRepo interface {
 	CreateMerchantItem(ctx context.Context, db *pgx.Conn, merchantId string, merchantItem domain.MerchantItem) error
-	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, error)
+	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, error)
+	GetTotalMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) (int, error)
 }
 
 type merchantItemRepo struct{}
@@ -37,7 +38,7 @@ func (mi *merchantItemRepo) CreateMerchantItem(ctx context.Context, db *pgx.Conn
 	return nil
 }
 
-func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, error) {
+func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, error) {
 	var whereParams []string
 	var sortParams []string
 	var limitOffsetParams []string
@@ -105,7 +106,7 @@ func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context,
 
 	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	merchantItemList := []domain.MerchantItemResponse{}
@@ -116,10 +117,34 @@ func (mi *merchantItemRepo) GetMerchantItemListByMerchantID(ctx context.Context,
 			&merchantItem.Category, &merchantItem.Price, &merchantItem.ImageUrl,
 		)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		merchantItemList = append(merchantItemList, merchantItem)
 	}
 
-	return merchantItemList, nil
+	totalMerchantItemList, err := mi.GetTotalMerchantItemListByMerchantID(ctx, db, merchantId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	page := &domain.Page{
+		Limit:  limit,
+		Offset: offset,
+		Total:  totalMerchantItemList,
+	}
+
+	return merchantItemList, page, nil
+}
+
+func (mi *merchantItemRepo) GetTotalMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) (int, error) {
+	query := `SELECT count(*)
+	FROM merchant_items
+	WHERE merchant_id = $1`
+	var total int
+	err := db.QueryRow(ctx, query, merchantId).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }
