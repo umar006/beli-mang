@@ -13,3 +13,7 @@ func NewErrConflict(msg string) *fiber.Error {
 func NewErrBadRequest(msg string) *fiber.Error {
 	return fiber.NewError(fiber.StatusBadRequest, msg)
 }
+
+func NewErrNotFound(msg string) *fiber.Error {
+	return fiber.NewError(fiber.StatusNotFound, msg)
+}

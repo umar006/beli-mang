@@ -4,9 +4,11 @@ import (
 	"beli-mang/internal/domain"
 	"beli-mang/internal/repository"
 	"context"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type MerchantItemService interface {
@@ -30,6 +32,12 @@ func (mi *merchantItemService) CreateMerchantItem(ctx context.Context, merchantI
 
 	err := mi.merchantItemRepo.CreateMerchantItem(ctx, mi.db, merchantId, merchantItem)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23503" {
+				return "", domain.NewErrNotFound("merchant is not found")
+			}
+		}
 		return "", domain.NewErrInternalServerError(err.Error())
 	}
 
