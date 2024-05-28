@@ -32,6 +32,15 @@ type MerchantItemRequest struct {
 	ImageUrl string           `json:"imageUrl" validate:"required,url"`
 }
 
+type MerchantItemResponse struct {
+	ID        string           `json:"itemId"`
+	CreatedAt int64            `json:"createdAt"`
+	Name      string           `json:"name"`
+	Category  ItemCategoryType `json:"productCategory"`
+	Price     int64            `json:"price"`
+	ImageUrl  string           `json:"imageUrl"`
+}
+
 func (mi *MerchantItemRequest) NewMerchantItemFromDTO() MerchantItem {
 	id, _ := gonanoid.New()
 	createdAt := time.Now().UnixNano()
