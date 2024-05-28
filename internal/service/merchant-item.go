@@ -13,6 +13,7 @@ import (
 
 type MerchantItemService interface {
 	CreateMerchantItem(ctx context.Context, merchantId string, body domain.MerchantItemRequest) (string, *fiber.Error)
+	GetMerchantItemListByMerchantID(ctx context.Context, merchantId string) ([]domain.MerchantItemResponse, *fiber.Error)
 }
 
 type merchantItemService struct {
@@ -42,4 +43,13 @@ func (mi *merchantItemService) CreateMerchantItem(ctx context.Context, merchantI
 	}
 
 	return merchantItem.ID, nil
+}
+
+func (mi *merchantItemService) GetMerchantItemListByMerchantID(ctx context.Context, merchantId string) ([]domain.MerchantItemResponse, *fiber.Error) {
+	merchantItemList, err := mi.merchantItemRepo.GetMerchantItemListByMerchantID(ctx, mi.db, merchantId)
+	if err != nil {
+		return nil, domain.NewErrInternalServerError(err.Error())
+	}
+
+	return merchantItemList, nil
 }
