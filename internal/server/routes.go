@@ -45,6 +45,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchant.Post("/", merchantHandler.CreateMerchant)
 	merchant.Get("/", merchantHandler.GetMerchantList)
 	merchant.Post("/:merchantId/items", merchantItemHandler.CreateMerchantItem)
+	merchant.Get("/:merchantId/items", merchantItemHandler.GetMerchantItemList)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
