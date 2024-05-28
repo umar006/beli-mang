@@ -11,6 +11,7 @@ import (
 
 type MerchantItemHandler interface {
 	CreateMerchantItem(ctx *fiber.Ctx) error
+	GetMerchantItemList(ctx *fiber.Ctx) error
 }
 
 type merchantItemHandler struct {
@@ -42,4 +43,19 @@ func (mi *merchantItemHandler) CreateMerchantItem(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(201).JSON(map[string]string{"itemId": merchantItemId})
+}
+
+func (mi *merchantItemHandler) GetMerchantItemList(ctx *fiber.Ctx) error {
+	merchantId := ctx.Params("merchantId", "")
+
+	merchantItemList, err := mi.merchantItemService.GetMerchantItemListByMerchantID(ctx.Context(), merchantId)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(err)
+	}
+
+	response := domain.SuccessResponse{
+		Data: merchantItemList,
+	}
+
+	return ctx.Status(200).JSON(response)
 }
