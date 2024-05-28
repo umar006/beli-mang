@@ -1,30 +1,20 @@
 package domain
 
-type ItemCategoryType int8
+import (
+	"time"
 
-const (
-	Beverage ItemCategoryType = iota
-	Food
-	Snack
-	Condiments
-	Additions
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-func (ic ItemCategoryType) String() string {
-	switch ic {
-	case Beverage:
-		return "Beverage"
-	case Food:
-		return "Food"
-	case Snack:
-		return "Snack"
-	case Condiments:
-		return "Condiments"
-	case Additions:
-		return "Additions"
-	}
-	return "unknown item category"
-}
+type ItemCategoryType string
+
+const (
+	ItemBeverage   ItemCategoryType = "Beverage"
+	ItemFood       ItemCategoryType = "Food"
+	ItemSnack      ItemCategoryType = "Snack"
+	ItemCondiments ItemCategoryType = "Condiments"
+	ItemAdditions  ItemCategoryType = "Additions"
+)
 
 type MerchantItem struct {
 	ID        string           `json:"itemId" db:"id"`
@@ -33,4 +23,25 @@ type MerchantItem struct {
 	Category  ItemCategoryType `json:"productCategory" db:"category"`
 	Price     int64            `json:"price" db:"price"`
 	ImageUrl  string           `json:"imageUrl" db:"image_url"`
+}
+
+type MerchantItemRequest struct {
+	Name     string           `json:"name"`
+	Category ItemCategoryType `json:"productCategory"`
+	Price    int64            `json:"price"`
+	ImageUrl string           `json:"imageUrl"`
+}
+
+func (mi *MerchantItemRequest) NewMerchantItemFromDTO() MerchantItem {
+	id, _ := gonanoid.New()
+	createdAt := time.Now().UnixNano()
+
+	return MerchantItem{
+		ID:        id,
+		CreatedAt: createdAt,
+		Name:      mi.Name,
+		Category:  mi.Category,
+		Price:     mi.Price,
+		ImageUrl:  mi.ImageUrl,
+	}
 }
