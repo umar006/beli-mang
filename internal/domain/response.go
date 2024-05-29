@@ -9,5 +9,5 @@ type Page struct {
 type SuccessResponse struct {
 	Message string `json:"message,omitempty"`
 	Data    any    `json:"data"`
-	Meta    Page   `json:"meta,omitempty"`
+	Meta    *Page  `json:"meta,omitempty"`
 }

@@ -58,7 +58,7 @@ func (mi *merchantItemHandler) GetMerchantItemList(ctx *fiber.Ctx) error {
 
 	response := domain.SuccessResponse{
 		Data: merchantItemList,
-		Meta: *page,
+		Meta: page,
 	}
 
 	return ctx.Status(200).JSON(response)

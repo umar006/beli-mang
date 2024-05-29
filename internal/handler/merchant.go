@@ -54,7 +54,7 @@ func (mh *merchantHandler) GetMerchantList(ctx *fiber.Ctx) error {
 
 	response := domain.SuccessResponse{
 		Data: merchantList,
-		Meta: *page,
+		Meta: page,
 	}
 
 	return ctx.Status(200).JSON(response)
