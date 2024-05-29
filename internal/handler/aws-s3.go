@@ -22,9 +22,19 @@ func NewAWSS3(awsS3Service service.AWSS3Service) AWSS3Handler {
 }
 
 func (aws *awsS3) UploadImage(ctx *fiber.Ctx) error {
+	headers := ctx.GetReqHeaders()
+	contentType := headers["Content-Type"]
+	contentLength := headers["Content-Length"][0]
+
+	if len(contentType) < 1 || contentLength == "0" {
+		err := domain.NewErrBadRequest("empty file")
+		return ctx.Status(err.Code).JSON(err)
+	}
+
 	file, err := ctx.FormFile("file")
 	if err != nil {
-		return ctx.Status(400).JSON(err)
+		err := domain.NewErrInternalServerError(err.Error())
+		return ctx.Status(err.Code).JSON(err)
 	}
 
 	var filename string
