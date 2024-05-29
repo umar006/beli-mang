@@ -6,11 +6,13 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -39,7 +41,16 @@ func (a *awsS3Service) UploadImage(fileHeader *multipart.FileHeader) (string, *f
 	}
 	defer openFile.Close()
 
+	isImg, err := isImageByContentType(openFile)
+	if err != nil {
+		return "", domain.NewErrInternalServerError(err.Error())
+	}
+	if !isImg {
+		return "", domain.NewErrBadRequest("only accept image")
+	}
+
 	fileExtension := filepath.Ext(fileHeader.Filename)
+	filename := uuid.New().String() + fileExtension
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(awsRegion),
@@ -50,7 +61,6 @@ func (a *awsS3Service) UploadImage(fileHeader *multipart.FileHeader) (string, *f
 
 	client := s3.NewFromConfig(cfg)
 
-	filename := uuid.New().String() + fileExtension
 	client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(awsS3BucketName),
 		Key:    aws.String(filename),
@@ -58,4 +68,18 @@ func (a *awsS3Service) UploadImage(fileHeader *multipart.FileHeader) (string, *f
 	})
 
 	return filename, nil
+}
+
+func isImageByContentType(file multipart.File) (bool, error) {
+	fileContent, err := mimetype.DetectReader(file)
+	if err != nil {
+		return false, domain.NewErrInternalServerError(err.Error())
+	}
+
+	onlyJpgImg := []string{"image/jpeg", "image/jpg"}
+	if !slices.Contains(onlyJpgImg, fileContent.String()) {
+		return false, nil
+	}
+
+	return true, nil
 }

@@ -27,9 +27,11 @@ func (aws *awsS3) UploadImage(ctx *fiber.Ctx) error {
 		return ctx.Status(400).JSON(err)
 	}
 
-	filename, err := aws.awsS3Service.UploadImage(file)
-	if err != nil {
+	var filename string
+	if f, err := aws.awsS3Service.UploadImage(file); err != nil {
 		return ctx.Status(400).JSON(err)
+	} else {
+		filename = f
 	}
 
 	response := domain.SuccessResponse{
