@@ -28,10 +28,15 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	userService := service.NewUser(db, userRepo)
 	merchantService := service.NewMerchantService(db, merchantRepo)
 	merchantItemService := service.NewMerchantItemService(db, merchantRepo, merchantItemRepo)
+	awsS3Service := service.NewAWSS3Service()
 
 	userHandler := handler.NewUser(validate, userService)
 	merchantHandler := handler.NewMerchantHandler(validate, merchantService)
 	merchantItemHandler := handler.NewMerchantItemHandler(validate, merchantItemService)
+	awsS3Handler := handler.NewAWSS3(awsS3Service)
+
+	awsS3 := s.App.Group("/image")
+	awsS3.Post("/", awsS3Handler.UploadImage)
 
 	admin := s.App.Group("/admin")
 	admin.Post("/register", userHandler.CreateAdmin)

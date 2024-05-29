@@ -7,6 +7,7 @@ type Page struct {
 }
 
 type SuccessResponse struct {
-	Data any  `json:"data"`
-	Meta Page `json:"meta"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data"`
+	Meta    Page   `json:"meta,omitempty"`
 }
