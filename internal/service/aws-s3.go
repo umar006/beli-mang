@@ -35,6 +35,11 @@ var (
 )
 
 func (a *awsS3Service) UploadImage(fileHeader *multipart.FileHeader) (string, *fiber.Error) {
+	sizeInKB := fileHeader.Size / 1000
+	if sizeInKB < 10 {
+		return "", domain.NewErrBadRequest("file size should between 10KB - 2MB")
+	}
+
 	openFile, err := fileHeader.Open()
 	if err != nil {
 		return "", domain.NewErrInternalServerError(err.Error())
