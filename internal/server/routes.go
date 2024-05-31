@@ -2,6 +2,7 @@ package server
 
 import (
 	"beli-mang/internal/handler"
+	"beli-mang/internal/middleware"
 	"beli-mang/internal/repository"
 	"beli-mang/internal/service"
 	"beli-mang/internal/validation"
@@ -34,8 +35,10 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchantHandler := handler.NewMerchantHandler(validate, merchantService)
 	merchantItemHandler := handler.NewMerchantItemHandler(validate, merchantItemService)
 	awsS3Handler := handler.NewAWSS3(awsS3Service)
+	authMiddleware := middleware.NewAuth()
 
 	awsS3 := s.App.Group("/image")
+	awsS3.Use(authMiddleware.Auth())
 	awsS3.Post("/", awsS3Handler.UploadImage)
 
 	admin := s.App.Group("/admin")
@@ -47,6 +50,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	users.Post("/login", userHandler.Login)
 
 	merchant := admin.Group("/merchants")
+	merchant.Use(authMiddleware.Auth())
 	merchant.Post("/", merchantHandler.CreateMerchant)
 	merchant.Get("/", merchantHandler.GetMerchantList)
 	merchant.Post("/:merchantId/items", merchantItemHandler.CreateMerchantItem)
