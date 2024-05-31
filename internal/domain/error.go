@@ -17,3 +17,7 @@ func NewErrBadRequest(msg string) *fiber.Error {
 func NewErrNotFound(msg string) *fiber.Error {
 	return fiber.NewError(fiber.StatusNotFound, msg)
 }
+
+func NewErrUnauthorized(msg string) *fiber.Error {
+	return fiber.NewError(fiber.StatusUnauthorized, msg)
+}
