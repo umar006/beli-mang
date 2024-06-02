@@ -13,6 +13,7 @@ import (
 
 type MerchantItemRepo interface {
 	CreateMerchantItem(ctx context.Context, db *pgx.Conn, merchantId string, merchantItem domain.MerchantItem) error
+	GetMerchantItemByID(ctx context.Context, db *pgx.Conn, itemID string) (domain.MerchantItemResponse, error)
 	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, error)
 	GetTotalMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) (int, error)
 }
@@ -159,4 +160,30 @@ func (mi *merchantItemRepo) GetTotalMerchantItemListByMerchantID(ctx context.Con
 	}
 
 	return total, nil
+}
+
+func (mi *merchantItemRepo) GetMerchantItemByID(ctx context.Context, db *pgx.Conn, itemID string) (domain.MerchantItemResponse, error) {
+	query := `SELECT id, created_at, name, price, category, image_url
+	FROM merchant_items
+	WHERE id = $1`
+
+	itemFromDB := domain.MerchantItem{}
+	err := db.QueryRow(ctx, query, itemID).Scan(&itemFromDB.ID, &itemFromDB.CreatedAt,
+		&itemFromDB.Name, &itemFromDB.Price, &itemFromDB.Category, &itemFromDB.ImageUrl,
+	)
+	if err != nil {
+		return domain.MerchantItemResponse{}, err
+	}
+
+	parsedCreatedAt := time.Unix(0, itemFromDB.CreatedAt).Format(time.RFC3339)
+	item := domain.MerchantItemResponse{
+		ID:        itemFromDB.ID,
+		CreatedAt: parsedCreatedAt,
+		Name:      itemFromDB.Name,
+		Category:  itemFromDB.Category,
+		Price:     itemFromDB.Price,
+		ImageUrl:  itemFromDB.ImageUrl,
+	}
+
+	return item, nil
 }
