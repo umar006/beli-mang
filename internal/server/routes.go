@@ -29,7 +29,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchantRepo := repository.NewMerchantRepo()
 	merchantItemRepo := repository.NewMerchantItemRepo()
 
-	userService := service.NewUser(db, userRepo)
+	userService := service.NewUser(db, userRepo, merchantRepo, merchantItemRepo)
 	merchantService := service.NewMerchantService(db, merchantRepo)
 	merchantItemService := service.NewMerchantItemService(db, merchantRepo, merchantItemRepo)
 	awsS3Service := service.NewAWSS3Service()
@@ -51,6 +51,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	users := s.App.Group("/users")
 	users.Post("/register", userHandler.CreateCustomer)
 	users.Post("/login", userHandler.Login)
+
+	usersProtected := users.Use(authMiddleware.Auth())
+	usersProtected.Post("/estimate", userHandler.GetPriceEstimation)
 
 	merchant := admin.Group("/merchants")
 	merchant.Use(authMiddleware.Auth())

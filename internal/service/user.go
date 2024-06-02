@@ -20,14 +20,18 @@ type UserService interface {
 }
 
 type userService struct {
-	db       *pgx.Conn
-	userRepo repository.UserRepo
+	db           *pgx.Conn
+	userRepo     repository.UserRepo
+	merchantRepo repository.MerchantRepo
+	itemRepo     repository.MerchantItemRepo
 }
 
-func NewUser(db *pgx.Conn, userRepo repository.UserRepo) UserService {
+func NewUser(db *pgx.Conn, userRepo repository.UserRepo, merchantRepo repository.MerchantRepo, itemRepo repository.MerchantItemRepo) UserService {
 	return &userService{
-		db:       db,
-		userRepo: userRepo,
+		db:           db,
+		userRepo:     userRepo,
+		merchantRepo: merchantRepo,
+		itemRepo:     itemRepo,
 	}
 }
 
