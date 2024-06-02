@@ -49,6 +49,9 @@ func (ms *merchantService) GetMerchantList(ctx context.Context, queryParams doma
 
 func (ms *merchantService) GetMerchantListByLatLong(ctx context.Context, latlong string, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, *fiber.Error) {
 	latlongAsSlices := strings.Split(latlong, ",")
+	if len(latlongAsSlices) < 2 {
+		return nil, nil, domain.NewErrBadRequest("invalid lat long")
+	}
 	merchantList, page, err := ms.merchantRepo.GetMerchantListByLatLong(ctx, ms.db, latlongAsSlices, queryParams)
 	if err != nil {
 		return nil, nil, domain.NewErrInternalServerError(err.Error())

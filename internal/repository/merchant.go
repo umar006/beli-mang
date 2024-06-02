@@ -166,7 +166,6 @@ func (mr *merchantRepo) CheckMerchantExistsByMerchantID(ctx context.Context, db 
 }
 
 func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Conn, latlong []string, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error) {
-	fmt.Println(latlong)
 	query := `SELECT id, created_at, name, category, image_url, location
 	FROM merchants m
 	ORDER BY (m.location <@> point($1,$2)) ASC`
