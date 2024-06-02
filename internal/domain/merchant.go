@@ -46,7 +46,7 @@ type MerchantResponse struct {
 	Category      MerchantCategoryType `json:"merchantCategory"`
 	ImageUrl      string               `json:"imageUrl"`
 	Location      MerchantLocation     `json:"location"`
-	TotalMerchant int                  `json:"TotalMerchant"`
+	TotalMerchant int                  `json:"TotalMerchant,omitempty"`
 }
 
 type MerchantQueryParams struct {
