@@ -214,11 +214,19 @@ func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Co
 	var limitOffsetQuery string
 	limitOffsetQuery = "\n" + strings.Join(limitOffsetParams, " ")
 
-	query := `SELECT id, created_at, name, category, image_url, location
+	subqueryMerchant := fmt.Sprintf(`
+		WITH merchants AS (
+			SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location
+			FROM merchants m
+			%s
+			%s
+		)
+	`, whereQuery, limitOffsetQuery)
+	query := `SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location
 	FROM merchants m
+	JOIN merchant_items mi ON mi.merchant_id = m.id
 	ORDER BY (m.location <@> point($1,$2)) ASC`
-	query += whereQuery
-	query += limitOffsetQuery
+	query = subqueryMerchant + query
 
 	rows, err := db.Query(ctx, query, args...)
 	if err != nil {
