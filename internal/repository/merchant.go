@@ -215,15 +215,16 @@ func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Co
 	limitOffsetQuery = "\n" + strings.Join(limitOffsetParams, " ")
 
 	subqueryMerchant := fmt.Sprintf(`
-		WITH merchants AS (
+		WITH merchantSq AS (
 			SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location
 			FROM merchants m
 			%s
 			%s
 		)
 	`, whereQuery, limitOffsetQuery)
-	query := `SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location
-	FROM merchants m
+	query := `SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location,
+					mi.id, mi.created_at, mi.name, mi.category, mi.price, mi.image_url
+	FROM merchantSq m
 	JOIN merchant_items mi ON mi.merchant_id = m.id
 	ORDER BY (m.location <@> point($1,$2)) ASC`
 	query = subqueryMerchant + query
@@ -233,11 +234,15 @@ func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Co
 		return nil, nil, err
 	}
 
-	merchantList := []domain.MerchantResponse{}
+	mapMerchantList := make(map[string]domain.MerchantResponse)
+	mapItemList := make(map[string][]domain.MerchantItemResponse)
 	for rows.Next() {
 		merchantFromDB := domain.Merchant{}
+		itemFromDB := domain.MerchantItem{}
 		rows.Scan(&merchantFromDB.ID, &merchantFromDB.CreatedAt, &merchantFromDB.Name,
 			&merchantFromDB.Category, &merchantFromDB.ImageUrl, &merchantFromDB.Location,
+			&itemFromDB.ID, &itemFromDB.CreatedAt, &itemFromDB.Name, &itemFromDB.Category,
+			&itemFromDB.Price, &itemFromDB.ImageUrl,
 		)
 
 		parsedCreatedAt := time.Unix(0, merchantFromDB.CreatedAt).Format(time.RFC3339)
@@ -252,7 +257,26 @@ func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Co
 				Longitude: merchantFromDB.Location.P.Y,
 			},
 		}
-		merchantList = append(merchantList, merchant)
+
+		parsedCreatedAt = time.Unix(0, itemFromDB.CreatedAt).Format(time.RFC3339)
+		item := domain.MerchantItemResponse{
+			ID:        itemFromDB.ID,
+			CreatedAt: parsedCreatedAt,
+			Name:      itemFromDB.Name,
+			Category:  itemFromDB.Category,
+			Price:     itemFromDB.Price,
+			ImageUrl:  itemFromDB.ImageUrl,
+		}
+
+		mapMerchantList[merchant.ID] = merchant
+		mapItemList[merchant.ID] = append(mapItemList[merchant.ID], item)
+	}
+
+	merchantList := []domain.MerchantResponse{}
+	for k, v := range mapMerchantList {
+		items := mapItemList[k]
+		v.MerchantItems = items
+		merchantList = append(merchantList, v)
 	}
 
 	return merchantList, nil, nil
