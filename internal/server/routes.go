@@ -53,6 +53,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	merchant.Use(authMiddleware.Auth())
 	merchant.Post("/", merchantHandler.CreateMerchant)
 	merchant.Get("/", merchantHandler.GetMerchantList)
+	merchant.Get("/nearby/:latlong", merchantHandler.GetMerchantListByLatLong)
 	merchant.Post("/:merchantId/items", merchantItemHandler.CreateMerchantItem)
 	merchant.Get("/:merchantId/items", merchantItemHandler.GetMerchantItemList)
 }

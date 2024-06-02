@@ -12,6 +12,7 @@ import (
 type MerchantHandler interface {
 	CreateMerchant(ctx *fiber.Ctx) error
 	GetMerchantList(ctx *fiber.Ctx) error
+	GetMerchantListByLatLong(ctx *fiber.Ctx) error
 }
 
 type merchantHandler struct {
@@ -48,6 +49,25 @@ func (mh *merchantHandler) GetMerchantList(ctx *fiber.Ctx) error {
 	ctx.QueryParser(&queryParams)
 
 	merchantList, page, err := mh.merchantService.GetMerchantList(ctx.Context(), queryParams)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(err)
+	}
+
+	response := domain.SuccessResponse{
+		Data: merchantList,
+		Meta: page,
+	}
+
+	return ctx.Status(200).JSON(response)
+}
+
+func (mh *merchantHandler) GetMerchantListByLatLong(ctx *fiber.Ctx) error {
+	pathParams := ctx.Params("latlong")
+
+	var queryParams domain.MerchantQueryParams
+	ctx.QueryParser(&queryParams)
+
+	merchantList, page, err := mh.merchantService.GetMerchantListByLatLong(ctx.Context(), pathParams, queryParams)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
