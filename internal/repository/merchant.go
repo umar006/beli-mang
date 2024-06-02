@@ -13,6 +13,7 @@ import (
 
 type MerchantRepo interface {
 	CreateMerchant(ctx context.Context, db *pgx.Conn, merchant domain.Merchant) error
+	GetMerchantByID(ctx context.Context, db *pgx.Conn, merchantID string) (domain.MerchantResponse, error)
 	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
 	GetMerchantListByLatLong(ctx context.Context, db *pgx.Conn, latlong []string, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
 	GetTotalMerchantList(ctx context.Context, db *pgx.Conn) (int, error)
@@ -280,4 +281,32 @@ func (mr *merchantRepo) GetMerchantListByLatLong(ctx context.Context, db *pgx.Co
 	}
 
 	return merchantList, nil, nil
+}
+
+func (mr *merchantRepo) GetMerchantByID(ctx context.Context, db *pgx.Conn, merchantID string) (domain.MerchantResponse, error) {
+	query := `SELECT id, created_at, name, category, image_url, location
+	FROM merchants
+	WHERE id = $1`
+	merchantFromDB := domain.Merchant{}
+	err := db.QueryRow(ctx, query, merchantID).Scan(&merchantFromDB.ID, &merchantFromDB.CreatedAt,
+		&merchantFromDB.Name, &merchantFromDB.Category, &merchantFromDB.ImageUrl, &merchantFromDB.Location,
+	)
+	if err != nil {
+		return domain.MerchantResponse{}, err
+	}
+
+	parsedCreatedAt := time.Unix(0, merchantFromDB.CreatedAt).Format(time.RFC3339)
+	merchant := domain.MerchantResponse{
+		ID:        merchantFromDB.ID,
+		CreatedAt: parsedCreatedAt,
+		Name:      merchantFromDB.Name,
+		Category:  merchantFromDB.Category,
+		ImageUrl:  merchantFromDB.ImageUrl,
+		Location: domain.MerchantLocation{
+			Latitude:  merchantFromDB.Location.P.X,
+			Longitude: merchantFromDB.Location.P.Y,
+		},
+	}
+
+	return merchant, nil
 }
