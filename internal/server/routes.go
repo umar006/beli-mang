@@ -9,12 +9,15 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var validate = validator.New()
 
 func (s *FiberServer) RegisterFiberRoutes() {
 	db := s.db.GetDB()
+
+	s.App.Use(recover.New())
 
 	s.App.Get("/", s.HelloWorldHandler)
 
