@@ -16,6 +16,7 @@ type MerchantItemRepo interface {
 	GetMerchantItemByID(ctx context.Context, db *pgx.Conn, itemID string) (domain.MerchantItemResponse, error)
 	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, error)
 	GetTotalMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) (int, error)
+	CheckItemExistsByID(ctx context.Context, db *pgx.Conn, itemID string) (bool, error)
 }
 
 type merchantItemRepo struct{}
@@ -186,4 +187,15 @@ func (mi *merchantItemRepo) GetMerchantItemByID(ctx context.Context, db *pgx.Con
 	}
 
 	return item, nil
+}
+
+func (mi *merchantItemRepo) CheckItemExistsByID(ctx context.Context, db *pgx.Conn, itemID string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM merchant_items WHERE id = $1)`
+	var exists bool
+	err := db.QueryRow(ctx, query, itemID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
