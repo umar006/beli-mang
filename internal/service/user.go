@@ -117,9 +117,14 @@ func (us *userService) Login(ctx context.Context, body domain.LoginRequest) (str
 
 func (us *userService) GetPriceEstimation(ctx context.Context, body domain.PriceEstimateRequest) (domain.PriceEstimateResponse, *fiber.Error) {
 	merchantIDs := []string{}
+	itemIDs := []string{}
 
 	for _, order := range body.Orders {
 		merchantIDs = append(merchantIDs, order.MerchantID)
+
+		for _, item := range order.OrderItems {
+			itemIDs = append(itemIDs, item.ItemID)
+		}
 	}
 
 	merchantList, err := us.merchantRepo.GetMerchantListByIDs(ctx, us.db, merchantIDs)
@@ -128,6 +133,14 @@ func (us *userService) GetPriceEstimation(ctx context.Context, body domain.Price
 	}
 	if len(merchantList) != len(merchantIDs) {
 		return domain.PriceEstimateResponse{}, domain.NewErrNotFound("some merchants are not found")
+	}
+
+	itemList, err := us.itemRepo.GetMerchantItemListByMerchantIDAndItemIDs(ctx, us.db, itemIDs)
+	if err != nil {
+		return domain.PriceEstimateResponse{}, domain.NewErrInternalServerError(err.Error())
+	}
+	if len(itemList) != len(itemIDs) {
+		return domain.PriceEstimateResponse{}, domain.NewErrNotFound("some items are not found")
 	}
 
 	return domain.PriceEstimateResponse{}, nil

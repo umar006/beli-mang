@@ -15,6 +15,7 @@ type MerchantItemRepo interface {
 	CreateMerchantItem(ctx context.Context, db *pgx.Conn, merchantId string, merchantItem domain.MerchantItem) error
 	GetMerchantItemByID(ctx context.Context, db *pgx.Conn, itemID string) (domain.MerchantItemResponse, error)
 	GetMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string, queryParams domain.MerchantItemQueryParams) ([]domain.MerchantItemResponse, *domain.Page, error)
+	GetMerchantItemListByMerchantIDAndItemIDs(ctx context.Context, db *pgx.Conn, itemIDs []string) ([]domain.MerchantItemResponse, error)
 	GetTotalMerchantItemListByMerchantID(ctx context.Context, db *pgx.Conn, merchantId string) (int, error)
 	CheckItemExistsByID(ctx context.Context, db *pgx.Conn, itemID string) (bool, error)
 }
@@ -198,4 +199,41 @@ func (mi *merchantItemRepo) CheckItemExistsByID(ctx context.Context, db *pgx.Con
 	}
 
 	return exists, nil
+}
+
+func (mr *merchantItemRepo) GetMerchantItemListByMerchantIDAndItemIDs(ctx context.Context, db *pgx.Conn, itemIDs []string) ([]domain.MerchantItemResponse, error) {
+	query := `SELECT id, created_at, name, category, price, image_url
+	 FROM merchant_items
+	 WHERE id = ANY($1)`
+
+	rows, err := db.Query(ctx, query, itemIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	merchantItemList := []domain.MerchantItemResponse{}
+	for rows.Next() {
+		merchantItemFromDB := domain.MerchantItem{}
+		err := rows.Scan(
+			&merchantItemFromDB.ID, &merchantItemFromDB.CreatedAt, &merchantItemFromDB.Name,
+			&merchantItemFromDB.Category, &merchantItemFromDB.Price, &merchantItemFromDB.ImageUrl,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		parsedCreatedAt := time.Unix(0, merchantItemFromDB.CreatedAt).Format(time.RFC3339)
+		merchantItem := domain.MerchantItemResponse{
+			ID:        merchantItemFromDB.ID,
+			CreatedAt: parsedCreatedAt,
+			Name:      merchantItemFromDB.Name,
+			Category:  merchantItemFromDB.Category,
+			Price:     merchantItemFromDB.Price,
+			ImageUrl:  merchantItemFromDB.ImageUrl,
+		}
+
+		merchantItemList = append(merchantItemList, merchantItem)
+	}
+
+	return merchantItemList, nil
 }
