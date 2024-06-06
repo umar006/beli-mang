@@ -118,6 +118,7 @@ func (us *userService) Login(ctx context.Context, body domain.LoginRequest) (str
 func (us *userService) GetPriceEstimation(ctx context.Context, body domain.PriceEstimateRequest) (domain.PriceEstimateResponse, *fiber.Error) {
 	merchantIDs := []string{}
 	itemIDs := []string{}
+	mapOrderItemQty := make(map[string]int)
 	estimateTimeFromMerchantID := ""
 
 	for _, order := range body.Orders {
@@ -128,6 +129,7 @@ func (us *userService) GetPriceEstimation(ctx context.Context, body domain.Price
 
 		for _, item := range order.OrderItems {
 			itemIDs = append(itemIDs, item.ItemID)
+			mapOrderItemQty[item.ItemID] = item.Quantity
 		}
 	}
 
@@ -154,9 +156,13 @@ func (us *userService) GetPriceEstimation(ctx context.Context, body domain.Price
 		}
 	}
 
-	fmt.Println(estimateTimeInMinutes)
+	totalPrice := 0
+	for _, item := range itemList {
+		totalPrice += int(item.Price) * mapOrderItemQty[item.ID]
+	}
 
 	return domain.PriceEstimateResponse{
 		EstimatedDeliveryTimeInMinutes: estimateTimeInMinutes,
+		TotalPrice:                     totalPrice,
 	}, nil
 }
