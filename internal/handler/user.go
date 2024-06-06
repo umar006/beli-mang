@@ -13,6 +13,7 @@ type UserHandler interface {
 	CreateAdmin(ctx *fiber.Ctx) error
 	CreateCustomer(ctx *fiber.Ctx) error
 	Login(ctx *fiber.Ctx) error
+	GetPriceEstimation(ctx *fiber.Ctx) error
 }
 
 type userHandler struct {
@@ -76,4 +77,16 @@ func (uh *userHandler) Login(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON(map[string]string{"token": token})
+}
+
+func (uh *userHandler) GetPriceEstimation(ctx *fiber.Ctx) error {
+	var body domain.PriceEstimateRequest
+	ctx.BodyParser(&body)
+
+	_, err := uh.userService.GetPriceEstimation(ctx.Context(), body)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(err)
+	}
+
+	return nil
 }

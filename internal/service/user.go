@@ -17,6 +17,7 @@ type UserService interface {
 	CreateAdmin(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error)
 	CreateCustomer(ctx context.Context, body domain.RegisterRequest) (string, *fiber.Error)
 	Login(ctx context.Context, body domain.LoginRequest) (string, *fiber.Error)
+	GetPriceEstimation(ctx context.Context, body domain.PriceEstimateRequest) (domain.PriceEstimateResponse, *fiber.Error)
 }
 
 type userService struct {
@@ -112,4 +113,22 @@ func (us *userService) Login(ctx context.Context, body domain.LoginRequest) (str
 	}
 
 	return token, nil
+}
+
+func (us *userService) GetPriceEstimation(ctx context.Context, body domain.PriceEstimateRequest) (domain.PriceEstimateResponse, *fiber.Error) {
+	merchantIDs := []string{}
+
+	for _, order := range body.Orders {
+		merchantIDs = append(merchantIDs, order.MerchantID)
+	}
+
+	merchantList, err := us.merchantRepo.GetMerchantListByIDs(ctx, us.db, merchantIDs)
+	if err != nil {
+		return domain.PriceEstimateResponse{}, domain.NewErrInternalServerError(err.Error())
+	}
+	if len(merchantList) != len(merchantIDs) {
+		return domain.PriceEstimateResponse{}, domain.NewErrNotFound("some merchants are not found")
+	}
+
+	return domain.PriceEstimateResponse{}, nil
 }
