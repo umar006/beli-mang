@@ -83,10 +83,10 @@ func (uh *userHandler) GetPriceEstimation(ctx *fiber.Ctx) error {
 	var body domain.PriceEstimateRequest
 	ctx.BodyParser(&body)
 
-	_, err := uh.userService.GetPriceEstimation(ctx.Context(), body)
+	estimation, err := uh.userService.GetPriceEstimation(ctx.Context(), body)
 	if err != nil {
 		return ctx.Status(err.Code).JSON(err)
 	}
 
-	return nil
+	return ctx.Status(200).JSON(estimation)
 }
