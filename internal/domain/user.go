@@ -33,6 +33,39 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=5,max=30"`
 }
 
+type UserLocation struct {
+	Latitude  float64 `json:"lat" validate:"required,number"`
+	Longitude float64 `json:"long" validate:"required,number"`
+}
+
+type UserOrderItem struct {
+	ItemID   string `json:"itemId" validate:"required"`
+	Quantity int    `json:"quantity" validate:"required,min=1"`
+}
+
+type UserOrder struct {
+	MerchantID      string          `json:"merchantId" validate:"required"`
+	IsStartingPoint *bool           `json:"isStartingPoint" validate:"required"`
+	OrderItems      []UserOrderItem `json:"items"`
+}
+
+type PriceEstimation struct {
+	ID                             string `db:"id"`
+	TotalPrice                     int    `db:"total_price"`
+	EstimatedDeliveryTimeInMinutes int    `db:"delivery_time_in_minutes"`
+}
+
+type PriceEstimateRequest struct {
+	UserLoc UserLocation `json:"userLocation"`
+	Orders  []UserOrder  `json:"orders"`
+}
+
+type PriceEstimateResponse struct {
+	ID                             string `json:"calculatedEstimatedId"`
+	TotalPrice                     int    `json:"totalPrice"`
+	EstimatedDeliveryTimeInMinutes int    `json:"estimatedDeliveryTimeInMinutes"`
+}
+
 func (ar *RegisterRequest) NewUserFromDTO() User {
 	id, _ := gonanoid.New()
 	createdAt := time.Now().UnixNano()
