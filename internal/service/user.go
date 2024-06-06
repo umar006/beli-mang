@@ -7,10 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 type UserService interface {
@@ -161,8 +163,25 @@ func (us *userService) GetPriceEstimation(ctx context.Context, body domain.Price
 		totalPrice += int(item.Price) * mapOrderItemQty[item.ID]
 	}
 
-	return domain.PriceEstimateResponse{
+	id, _ := gonanoid.New()
+	createdAt := time.Now().UnixNano()
+	priceEstimation := domain.PriceEstimation{
+		ID:                             id,
+		CreatedAt:                      createdAt,
 		EstimatedDeliveryTimeInMinutes: estimateTimeInMinutes,
 		TotalPrice:                     totalPrice,
-	}, nil
+	}
+
+	err = us.userRepo.CreatePriceEstimate(ctx, us.db, priceEstimation)
+	if err != nil {
+		return domain.PriceEstimateResponse{}, domain.NewErrInternalServerError(err.Error())
+	}
+
+	priceEstimationResp := domain.PriceEstimateResponse{
+		ID:                             id,
+		EstimatedDeliveryTimeInMinutes: estimateTimeInMinutes,
+		TotalPrice:                     totalPrice,
+	}
+
+	return priceEstimationResp, nil
 }

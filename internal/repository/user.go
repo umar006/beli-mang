@@ -9,6 +9,7 @@ import (
 
 type UserRepo interface {
 	Create(ctx context.Context, db *pgx.Conn, user domain.User) error
+	CreatePriceEstimate(ctx context.Context, db *pgx.Conn, priceEstimate domain.PriceEstimation) error
 	GetUserByUsername(ctx context.Context, db *pgx.Conn, username string) (domain.User, error)
 }
 
@@ -42,4 +43,14 @@ func (ur *userRepo) GetUserByUsername(ctx context.Context, db *pgx.Conn, usernam
 	}
 
 	return user, nil
+}
+
+func (ur *userRepo) CreatePriceEstimate(ctx context.Context, db *pgx.Conn, priceEstimate domain.PriceEstimation) error {
+	query := `INSERT INTO price_estimations (id, created_at, total_price, delivery_time_in_minutes)
+				VALUES ($1, $2, $3, $4)`
+	_, err := db.Exec(ctx, query, priceEstimate.ID, priceEstimate.CreatedAt, priceEstimate.TotalPrice, priceEstimate.EstimatedDeliveryTimeInMinutes)
+	if err != nil {
+		return err
+	}
+	return nil
 }

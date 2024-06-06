@@ -51,6 +51,7 @@ type UserOrder struct {
 
 type PriceEstimation struct {
 	ID                             string `db:"id"`
+	CreatedAt                      int64  `db:"created_at"`
 	TotalPrice                     int    `db:"total_price"`
 	EstimatedDeliveryTimeInMinutes int    `db:"delivery_time_in_minutes"`
 }
