@@ -40,14 +40,15 @@ type MerchantRequest struct {
 }
 
 type MerchantResponse struct {
-	ID            string                 `json:"merchantId"`
-	CreatedAt     string                 `json:"createdAt"`
-	Name          string                 `json:"name"`
-	Category      MerchantCategoryType   `json:"merchantCategory"`
-	ImageUrl      string                 `json:"imageUrl"`
-	Location      MerchantLocation       `json:"location"`
-	MerchantItems []MerchantItemResponse `json:"items,omitempty"`
-	TotalMerchant int                    `json:"TotalMerchant,omitempty"`
+	ID               string                 `json:"merchantId"`
+	CreatedAt        string                 `json:"createdAt"`
+	Name             string                 `json:"name"`
+	Category         MerchantCategoryType   `json:"merchantCategory"`
+	ImageUrl         string                 `json:"imageUrl"`
+	Location         MerchantLocation       `json:"location"`
+	MerchantItems    []MerchantItemResponse `json:"items,omitempty"`
+	TotalMerchant    int                    `json:"TotalMerchant,omitempty"`
+	DistanceFromUser float64                `json:"distanceFromUser,omitempty"`
 }
 
 type MerchantQueryParams struct {

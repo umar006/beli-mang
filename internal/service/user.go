@@ -127,7 +127,7 @@ func (us *userService) GetPriceEstimation(ctx context.Context, body domain.Price
 		}
 	}
 
-	merchantList, err := us.merchantRepo.GetMerchantListByIDs(ctx, us.db, merchantIDs)
+	merchantList, err := us.merchantRepo.GetMerchantListByIDs(ctx, us.db, merchantIDs, body.UserLoc)
 	if err != nil {
 		return domain.PriceEstimateResponse{}, domain.NewErrInternalServerError(err.Error())
 	}

@@ -15,7 +15,7 @@ type MerchantRepo interface {
 	CreateMerchant(ctx context.Context, db *pgx.Conn, merchant domain.Merchant) error
 	GetMerchantByID(ctx context.Context, db *pgx.Conn, merchantID string) (domain.MerchantResponse, error)
 	GetMerchantList(ctx context.Context, db *pgx.Conn, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
-	GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, merchantIDs []string) ([]domain.MerchantResponse, error)
+	GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, merchantIDs []string, userLoc domain.UserLocation) ([]domain.MerchantResponse, error)
 	GetMerchantListByLatLong(ctx context.Context, db *pgx.Conn, latlong []string, queryParams domain.MerchantQueryParams) ([]domain.MerchantResponse, *domain.Page, error)
 	GetTotalMerchantList(ctx context.Context, db *pgx.Conn) (int, error)
 	CheckMerchantExistsByMerchantID(ctx context.Context, db *pgx.Conn, merchantID string) (bool, error)
@@ -312,11 +312,11 @@ func (mr *merchantRepo) GetMerchantByID(ctx context.Context, db *pgx.Conn, merch
 	return merchant, nil
 }
 
-func (mr *merchantRepo) GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, merchantIDs []string) ([]domain.MerchantResponse, error) {
-	query := `SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location
+func (mr *merchantRepo) GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, merchantIDs []string, userLoc domain.UserLocation) ([]domain.MerchantResponse, error) {
+	query := `SELECT m.id, m.created_at, m.name, m.category, m.image_url, m.location, (m.location <@> point($2, $3)) * 1.60934 AS distance
 			FROM merchants m
 			WHERE id = ANY($1)`
-	rows, err := db.Query(ctx, query, merchantIDs)
+	rows, err := db.Query(ctx, query, merchantIDs, userLoc.Longitude, userLoc.Latitude)
 	if err != nil {
 		return nil, err
 	}
@@ -324,8 +324,10 @@ func (mr *merchantRepo) GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, 
 	merchantList := []domain.MerchantResponse{}
 	for rows.Next() {
 		merchantFromDB := domain.Merchant{}
+		var distance float64
 		rows.Scan(&merchantFromDB.ID, &merchantFromDB.CreatedAt, &merchantFromDB.Name,
 			&merchantFromDB.Category, &merchantFromDB.ImageUrl, &merchantFromDB.Location,
+			&distance,
 		)
 
 		parsedCreatedAt := time.Unix(0, merchantFromDB.CreatedAt).Format(time.RFC3339)
@@ -339,6 +341,7 @@ func (mr *merchantRepo) GetMerchantListByIDs(ctx context.Context, db *pgx.Conn, 
 				Latitude:  merchantFromDB.Location.P.X,
 				Longitude: merchantFromDB.Location.P.Y,
 			},
+			DistanceFromUser: distance,
 		}
 		merchantList = append(merchantList, merchant)
 	}
